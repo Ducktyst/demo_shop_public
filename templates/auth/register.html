@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block head %}
+{% endblock %}
+
+{% block content %}
+<div class="containter">
+    <div class="row justify-content-center">
+        <div class="col-3">
+            <h2>Регистрация</h2>
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit">Зарегестрироваться</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

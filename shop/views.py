@@ -1,7 +1,12 @@
+from django.contrib import messages
+from django.contrib.auth import login
 from django.shortcuts import render
-from django.views.generic import TemplateView, DetailView, View, ListView
+from django.urls import reverse_lazy
+from django.views.generic import TemplateView, DetailView, View, ListView, CreateView
+from django.contrib.auth.views import LoginView, LogoutView
 
-from shop.models import Product, Category
+from shop.forms import RegisterForm, LoginForm
+from shop.models import Product, Category, Cart
 
 
 def about(request, *args, **kwargs):
@@ -63,3 +68,36 @@ class ProductListView(ListView):
             qs = qs.order_by(self.default_order_by)
 
         return qs
+
+
+class RegisterView(CreateView):
+    form_class = RegisterForm
+    template_name = "auth/register.html"
+    success_url = reverse_lazy("products")
+
+    def form_valid(self, form):
+        user = form.save()
+
+        if user:
+            login(self.request, user)
+            Cart.objects.create(user_id=user.id)
+
+        return super().form_valid(form)
+
+
+class LoginPageView(LoginView):
+    form_class = LoginForm
+    template_name = 'auth/login.html'
+    next_page = reverse_lazy('home')
+    redirect_authenticated_user = True
+
+    def get_success_url(self):
+        return reverse_lazy('products')
+
+    def form_invalid(self, form):
+        messages.error(self.request, 'Invalid username or password')
+        return self.render_to_response(self.get_context_data(form=form))
+
+
+class LogoutPageView(LogoutView):
+    pass
