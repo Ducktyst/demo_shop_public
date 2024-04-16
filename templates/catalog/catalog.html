@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block head %}
+{% endblock %}
+
+{% block content %}
+<div>
+    <p>Категории</p>
+    {% for cat in categories %}
+        {% if curr_cat_id == cat.id %}
+            <span href="{% url 'products-cat' cat.id %}">{{ cat.name }}</span>
+        {% else %}
+            <a href="{% url 'products-cat' cat.id %}">{{ cat.name }}</a>
+        {% endif %}
+    {% endfor %}
+    <hr>
+
+    <p>Сортировка</p>
+    {% for s_key, s_name in sortings.items %}
+
+    {% if curr_cat_id %}
+        {% if curr_order_by == s_key %}
+            <span>{{ s_name }}</span> |
+        {% else %}
+            <a href="{% url 'products-cat' curr_cat_id %}?order_by={{ s_key }}">{{ s_name }}</a> |
+        {% endif %}
+    {% else %}
+        {% if curr_order_by == s_key %}
+            <span>{{ s_name }}</span> |
+        {% else %}
+            <a href="{% url 'products' %}?order_by={{ s_key }}">{{ s_name }}</a> |
+        {% endif %}
+    {% endif %}
+
+    {% endfor %}
+    <hr>
+
+
+</div>
+{% for product in object_list %}
+<br>
+<div>
+
+    <p>
+        <a href="{% url 'product-detail' pk=product.id %}">
+            <img width="320" height="148" src="{{ product.image_url }}" alt="{{product.name}}">
+        </a>
+    </p>
+    <p>{{ product.name }}</p>
+    <p>{{ product.price }}</p>
+
+    <a href="{% url 'cart-add-product' %}?product_id={{ product.id }}&add_count=1">Добавить в корзину</a>
+</div>
+{% endfor %}
+
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+            <a href="?order_by={{ curr_order_by }}&page=1">&laquo; Первая</a>
+            <a href="?order_by={{ curr_order_by }}&page={{ page_obj.previous_page_number }}">Предыдущая</a>
+        {% endif %}
+
+        <span class="current">
+            Стр. {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}.
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?order_by={{ curr_order_by }}&page={{ page_obj.next_page_number }}">Следующая</a>
+            <a href="?order_by={{ curr_order_by }}&page={{ page_obj.paginator.num_pages }}">Последняя&raquo;</a>
+        {% endif %}
+    </span>
+</div>
+
+{% endblock %}

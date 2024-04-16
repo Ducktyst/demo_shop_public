@@ -1,0 +1,55 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    {% block head %}
+    {% endblock %}
+    <title></title>
+
+</head>
+
+<body>
+
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark navbar-fixed-top fixed-top">
+    <div class="container">
+        <a href="{% url 'products' %}">Каталог</a>
+
+        <a href="{% url 'about'%}">О нас</a>
+        <a href="{% url 'find_us'%}">Где нас найти?</a>
+
+        {% if request.user.is_authenticated %}
+        <a href="{% url 'cart'%}">Корзина</a>
+        <a href="{% url 'orders' %}">Заказы</a>
+        <a href="{% url 'logout-customer' %}">Выйти</a>
+        {% else %}
+        <a href="{% url 'register-customer' %}">Регистрация</a>
+        <a href="{% url 'login-customer' %}">Войти</a>
+        {% endif %}
+
+        <a href="{% url 'about'%}">О нас</a>
+        <a href="{% url 'find_us'%}">Где нас найти?</a>
+
+        {% if request.user.is_superuser %}
+        <a href="/admin/">Админ-панель</a>
+        {% endif %}
+
+    </div>
+</nav>
+
+{% block content %}
+{% endblock %}
+
+<!-- Footer -->
+<footer class="py-5 bg-dark">
+    <div class="container">
+        <p class="m-0 text-center text-white">&copy; Copy Star - Интернет-магазин принтеров</p>
+    </div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block head %}
+{% endblock %}
+
+{% block content %}
+<div class="containter">
+    <div class="row justify-content-center">
+        <div class="col-3">
+            <h2>О нас</h2>
+            <p>
+                Компания "Copy Star". Продажа копировального оборудования.
+                <a href="{% url 'find_us' %}">Где нас найти?</a>
+                <br>
+            </p>
+            <p>Новинки</p>
+            {% for product in products %}
+            <hr>
+            <p>
+                <img width="320" height="148" src="{{ product.image_url }}" alt="{{product.id}} img">
+            </p>
+            <p>{{product.name}}</p>
+            <p>{{product.price}}</p>
+            <a href="{% url 'cart-add-product' %}?product_id={{ product.id }}&add_count=1">Добавить в корзину</a>
+            <hr>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
