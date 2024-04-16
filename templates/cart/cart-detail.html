@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block head %}
+{% endblock %}
+
+{% block content %}
+{% for cart_item in cart_items %}
+<hr>
+<div>
+    <p>{{ cart_item.product.name }}</p>
+    <p>{{ cart_item.product.price }}</p>
+    <p>{{ cart_item.count }}</p>
+    <!--  https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/number -->
+    <form action="{% url 'cart-update-product' %}" method="post">
+        {% csrf_token %}
+        <input id="product_id" type="number" value="{{cart_item.product.id}}" hidden/>
+        Количество
+        <input id="set_count" type="number" min="0" max="{{cart_item.product.quantity}}" value="{{cart_item.count}}" />
+
+        <input class="btn btn-primary" type="submit" value="Установить количество">
+        </form>
+
+    <a href="{% url 'cart-delete-product' %}?product_id={{ product.id }}">Убрать из корзины</a>
+</div>
+<hr>
+{% endfor %}
+
+<div>
+    <p>Итоговая стоимость: {{ total_cost }} </p>
+    <input type="submit" value="Оформить заказ" name="_create-order">
+</div>
+
+{% endblock %}
