@@ -215,7 +215,7 @@ class OrderDelete(View):
 
 
 class AdminOrders(SuperUserRequiredMixin, ListView):
-    template_name = "orders/admin_orders.html"
+    template_name = "admin/orders.html"
     model = Order
     context_object_name = "orders"
     paginate_by = '10'
@@ -235,7 +235,7 @@ class AdminOrders(SuperUserRequiredMixin, ListView):
 
 
 class AdminOrderResponse(SuperUserRequiredMixin, FormView):
-    template_name = "orders/admin_order_response.html"
+    template_name = "admin/order_response.html"
     form_class = OrderResponseForm
 
     def get(self, request, *args, **kwargs):

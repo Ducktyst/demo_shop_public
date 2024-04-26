@@ -1,5 +1,16 @@
-{% extends "base.html" %}
+{% extends "admin/base_site.html" %}
 {% load static %}
+{% load i18n static %}
+
+{% block head %}
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+    &rsaquo; Список заказов
+</div>
+{% endblock %}
 
 {% block content %}
 {% for order in orders %}
