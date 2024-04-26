@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+{% for order in orders %}
+<hr>
+<div>
+    <p>Клиент {{ order.user.last_name }} {{ order.user.first_name }}</p>
+    <p>Заказ №{{ order.id }}</p>
+    <p>{{ order.created_at }}</p>
+    <p>На сумму: {{ order.total_cost }}</p>
+    <p>Статус: {{ order.status_name }}</p>
+    <button><a href="{% url 'admin-order-response' pk=order.id %}">Ответить на заказ</a></button>
+</div>
+<hr>
+{% endfor %}
+
+{% endblock %}

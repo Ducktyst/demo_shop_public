@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+{% if message %}
+<h3>{{ message }}</h3>
+{% endif %}
+
+<div class="containter" xmlns="http://www.w3.org/1999/html">
+    <div class="row justify-content-center">
+        <div class="col-3">
+            <p>Заказ №{{ order.id }} </p>
+            <p>Статус заказа: {{order.status_name}}</p>
+
+            {% if order.status == order.NEW %}
+            <form action="{% url 'admin-order-response' pk=order.id %}" method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+
+                <input type="submit" name="_decline" value="Отклонить заказ">
+                <input type="submit" name="_confirm" value="Подтвердить заказ">
+            </form>
+            {% else %} <!-- Обработанный заказ-->
+            <hr>
+            <div>
+                <p>Примечание: {{ order.message }} </p>
+
+            </div>
+            <hr>
+            {% endif %}
+
+            <!-- https://www.geeksforgeeks.org/django-how-to-add-multiple-submit-button-in-single-form/ -->
+        </div>
+    </div>
+</div>
+{% endblock %}

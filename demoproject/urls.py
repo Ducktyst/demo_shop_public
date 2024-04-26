@@ -20,9 +20,10 @@ from django.urls import path
 from django.urls import include
 
 from demoproject import settings
-from shop.urls import urlpatterns as shop_urls
+from shop.urls import urlpatterns as shop_urls, shop_urlpatterns_admin
 
 urlpatterns = [
+    path('', include(shop_urlpatterns_admin)),
     path('admin/', admin.site.urls),
     path('', include(shop_urls)),
 ]

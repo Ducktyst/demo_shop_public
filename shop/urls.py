@@ -10,7 +10,7 @@ from shop.views import (ProductView,
                         CartConfirm,
                         OrdersList,
                         OrderDetail,
-                        OrderDelete)
+                        OrderDelete, AdminOrders, AdminOrderResponse)
 from shop.views import ProductListView
 from shop.views import FindUs
 from shop.views import about
@@ -39,3 +39,9 @@ urlpatterns = [
     path("orders/<int:pk>", OrderDetail.as_view(), name="order-get"),
     path("orders/<int:pk>/delete", OrderDelete.as_view(), name="order-delete"),
 ] + auth_urlpatterns
+
+shop_urlpatterns_admin = [
+    # admins
+    path("admin/orders", AdminOrders.as_view(), name="admin-orders"),
+    path("admin/orders/<int:pk>", AdminOrderResponse.as_view(), name="admin-order-response"),
+]

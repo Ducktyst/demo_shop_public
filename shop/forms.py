@@ -14,3 +14,8 @@ class RegisterForm(auth_forms.UserCreationForm):
     class Meta:
         model = get_user_model()
         fields = ["username", "password1"]
+
+
+class OrderResponseForm(forms.Form):
+    message = forms.CharField(required=False, widget=forms.Textarea)
+

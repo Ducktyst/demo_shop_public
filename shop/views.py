@@ -1,15 +1,15 @@
 from django.contrib import messages
 from django.contrib.auth import login
 from django.db import transaction
-from django.http import HttpResponseBadRequest, HttpResponseServerError
+from django.http import HttpResponseBadRequest, HttpResponseServerError, HttpResponseNotFound
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
-from django.views.generic import TemplateView, DetailView, View, ListView, CreateView
+from django.views.generic import TemplateView, DetailView, View, ListView, CreateView, FormView
 from django.contrib.auth.views import LoginView, LogoutView
 
-from shop.forms import RegisterForm, LoginForm
-from shop.mixins import CustomerLoginRequiredMixin
-from shop.models import Product, Category, Cart, CartItem
+from shop.forms import RegisterForm, LoginForm, OrderResponseForm
+from shop.mixins import CustomerLoginRequiredMixin, SuperUserRequiredMixin
+from shop.models import Product, Category, Cart, CartItem, Order
 
 
 def about(request, *args, **kwargs):
@@ -212,3 +212,91 @@ class OrderDetail(View):
 class OrderDelete(View):
     # TODO: реализовать логику удаления заказа. Проверять статус заказа
     pass
+
+
+class AdminOrders(SuperUserRequiredMixin, ListView):
+    template_name = "orders/admin_orders.html"
+    model = Order
+    context_object_name = "orders"
+    paginate_by = '10'
+    ordering = '-created_at'
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(object_list=None, **kwargs)
+        context.update({
+            'has_permission': True
+        })
+        return context
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        qs = qs.filter(status=Order.NEW)
+        return qs
+
+
+class AdminOrderResponse(SuperUserRequiredMixin, FormView):
+    template_name = "orders/admin_order_response.html"
+    form_class = OrderResponseForm
+
+    def get(self, request, *args, **kwargs):
+        return self.render_form(request, '', *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+        order_id = kwargs.get('pk', None)
+
+        if form.is_valid():
+            if '_confirm' in request.POST:
+                order_id = kwargs.get('pk', None)
+                order = Order.objects.filter(pk=order_id).first()
+                if order is None:
+                    return HttpResponseNotFound()
+
+                if order.status != Order.NEW:
+                    return redirect('admin-orders')
+
+                order.message = form.cleaned_data['message']
+                order.status = Order.CONFIRMED
+                order.save()
+
+                return redirect('admin-order-response', pk=order_id)
+            elif '_decline' in request.POST:
+                order_id = kwargs.get('pk', None)
+                order = Order.objects.filter(pk=order_id).first()
+                if order is None:
+                    return HttpResponseNotFound()
+
+                if order.status != Order.NEW:
+                    return redirect('admin-orders')
+
+                order.message = form.cleaned_data['message']
+                order.status = Order.DECLINED
+                order.save()
+
+                return redirect('admin-order-response', pk=order_id)
+
+            return redirect('admin-order-response', pk=order_id)
+        else:
+            return self.render_form(request, 'Форма заполнена неверно', *args, **kwargs)
+
+    def render_form(self, request, message, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+
+        order_id = kwargs.get('pk', None)
+        order = Order.objects.filter(pk=order_id).first()
+        if order is None:
+            return HttpResponseNotFound()
+
+        if order.status != Order.NEW:  # Display Order. Block edit
+            context.update({
+                'order': order,
+            })
+            return render(self.request, self.template_name, context)
+
+        context.update(
+            {
+                'order': order,
+                'message': message,
+            }
+        )
+        return self.render_to_response(context)
