@@ -19,3 +19,7 @@ class RegisterForm(auth_forms.UserCreationForm):
 class OrderResponseForm(forms.Form):
     message = forms.CharField(required=False, widget=forms.Textarea)
 
+
+class SetCartItemCountForm(forms.Form):
+    product_id = forms.IntegerField(min_value=0)
+    set_count = forms.IntegerField(min_value=0)

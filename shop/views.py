@@ -7,9 +7,9 @@ from django.urls import reverse_lazy
 from django.views.generic import TemplateView, DetailView, View, ListView, CreateView, FormView
 from django.contrib.auth.views import LoginView, LogoutView
 
-from shop.forms import RegisterForm, LoginForm, OrderResponseForm
+from shop.forms import RegisterForm, LoginForm, OrderResponseForm, SetCartItemCountForm
 from shop.mixins import CustomerLoginRequiredMixin, SuperUserRequiredMixin
-from shop.models import Product, Category, Cart, CartItem, Order
+from shop.models import Product, Category, Cart, CartItem, Order, OrderItem
 
 
 def about(request, *args, **kwargs):
@@ -45,8 +45,6 @@ class ProductListView(ListView):
     default_order_by = "-added_at"
 
     def get_context_data(self, *, object_list=None, **kwargs):
-
-        # print(self.request.GET.urlencode())
         context = super().get_context_data(object_list=object_list, **kwargs)
         context.update({
             "curr_order_by": self.request.GET.get("order_by", self.default_order_by),
@@ -107,7 +105,7 @@ class LogoutPageView(LogoutView):
 
 
 class CartDetail(CustomerLoginRequiredMixin, TemplateView):
-    template_name = "cart/cart-detail.html"
+    template_name = "cart/cart_detail.html"
 
     def get(self, request, *args, **kwargs):
         user_id = request.user.id
@@ -121,6 +119,9 @@ class CartDetail(CustomerLoginRequiredMixin, TemplateView):
             "total_cost": cartitem_total_cost(cart_items),
             "cart_items": cart_items,
         })
+        # Проверить доступные товары.
+        # Вывести сообщение каких товаров не хватает
+        # заблокировать кнопку формирования заказа
         return self.render_to_response(context)
 
 
@@ -138,7 +139,7 @@ class CartProductAdd(CustomerLoginRequiredMixin, View):
         user_id = request.user.id
         cart = Cart.objects.filter(user_id=user_id).first()
         if not cart:
-            return HttpResponseServerError()
+            return HttpResponseServerError('cart not exists')
 
         product_id = request.GET.get('product_id')
         add_count = request.GET.get('add_count', 1)
@@ -170,6 +171,57 @@ class CartProductAdd(CustomerLoginRequiredMixin, View):
         return redirect("cart", permanent=False)
 
 
+class CartProductUpdate(CustomerLoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        product_id = request.GET.get('product_id')
+        set_count = request.GET.get('set_count', 1)
+
+        if not product_id or not product_id.isdigit():
+            return HttpResponseBadRequest('product_id not int')
+
+        if not set_count.isdigit():
+            return HttpResponseBadRequest('set_count not int')
+
+        product_id = int(product_id)
+        set_count = int(set_count)
+
+        return self.set_cart_count_id(request.user, product_id, set_count)
+
+    def post(self, request, *args, **kwargs):
+        form = SetCartItemCountForm(request.POST)
+        if not form.is_valid():
+            return redirect("cart", permanent=False)
+
+        product_id = form.cleaned_data['product_id']
+        set_count = form.cleaned_data['set_count']
+        return self.set_cart_count_id(self.request.user, product_id, set_count)
+
+    def set_cart_count_id(self, user, product_id: int, set_count: int):
+        cart = Cart.objects.filter(user_id=user.id).first()
+        if not cart:
+            return HttpResponseServerError()
+
+        if set_count < 0:
+            return HttpResponseBadRequest('set_count must be positive')
+
+        product = Product.objects.filter(id=product_id).first()
+        if not product:
+            return HttpResponseBadRequest('Товар не существует')
+
+        if product.quantity < set_count:
+            return HttpResponseBadRequest('Недостаточно товара')
+
+        cart_item = CartItem.objects.filter(cart=cart, product_id=product_id).first()
+        if cart_item:
+            if cart_item.count != set_count:
+                cart_item.count = set_count
+                cart_item.save()
+        else:
+            CartItem.objects.create(cart=cart, product=product, count=set_count)
+
+        return redirect("cart", permanent=False)
+
+
 class CartProductDelete(CustomerLoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         user_id = request.user.id
@@ -196,22 +248,75 @@ class CartProductDelete(CustomerLoginRequiredMixin, View):
 class CartConfirm(CustomerLoginRequiredMixin, View):
     @transaction.atomic
     def get(self, request, *args, **kwargs):
-        return self.render_to_response({})
+        user_id = request.user.id
+
+        cart = Cart.objects.filter(user_id=user_id).first()
+        if not cart:
+            transaction.rollback()
+            return HttpResponseServerError()
+
+        order = Order.objects.create(
+            user_id=user_id,
+            status=Order.NEW,
+            total_cost=0,
+        )
+
+        total_cost = 0
+        for ci in cart.cartitem_set.select_related('product'):
+            if ci.count > ci.product.quantity:
+                transaction.rollback()
+                return HttpResponseBadRequest("Недостаточно товара ")  # TODO: redirect to cart, with error message
+
+            oi = OrderItem.objects.create(
+                order_id=order.id,
+                product=ci.product,
+                count=ci.count,
+            )
+            total_cost += ci.count * ci.product.price
+            ci.delete()
+
+        order.total_cost = total_cost
+        order.save()
+
+        return redirect("orders")
 
 
-class OrdersList(View):
-    # TODO: реализовать логику получения списка заказов пользователя
-    pass
+class OrdersList(CustomerLoginRequiredMixin, View):
+
+    def get(self, request, *args, **kwargs):
+        user = self.request.user
+        context = {}
+        context.update({"orders": Order.objects.filter(user=user).order_by('-created_at').all()})
+
+        return render(request, "orders/orders.html", context)
 
 
-class OrderDetail(View):
-    # TODO: реализовать логику получения детальной информации о заказе с выводов товаров в заказе
-    pass
+class OrderDetail(CustomerLoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        user = self.request.user
+        order_id = kwargs.get('pk', None)
+
+        order = Order.objects.filter(user=user).filter(id=order_id).first()  # todo: .prefetch_related("orderitem_set")?
+        if order is None:
+            return HttpResponseNotFound()
+
+        context = {
+            "order": order,
+            "order_items": order.order_items.all()  # OrderItem -> fk(Order, related_name)
+        }
+
+        return render(request, "orders/order_detail.html", context)
 
 
-class OrderDelete(View):
-    # TODO: реализовать логику удаления заказа. Проверять статус заказа
-    pass
+class OrderDelete(CustomerLoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        user = self.request.user
+        order_id = kwargs.get('pk', None)
+        if order_id is None:
+            return HttpResponseNotFound()
+
+        Order.objects.filter(user=user).filter(id=order_id).delete()
+        return redirect('orders')
 
 
 class AdminOrders(SuperUserRequiredMixin, ListView):

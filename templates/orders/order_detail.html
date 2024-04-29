@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block head %}
+{% endblock %}
+
+{% block content %}
+
+<hr>
+<div>
+    <p>Заказ №{{ order.id }}</p>
+    <p>{{ order.created_at }}</p>
+    <p>На сумму: {{ order.total_cost }}</p>
+    <p>Статус: {{ order.status_name }}</p>
+    {% if order.status != order.NEW %}
+    <p>Ответ магазина: {{order.message}}</p>
+    {% endif %}
+    <p>Товары в заказе: </p>
+    {% for item range order.orderitem_set %}
+    <p>Наименование: {{ item.product.name }}</p>
+    <p>Цена: {{ item.product.price }}</p>
+    <p>Кол-во: {{ item.count }}</p>
+    {% endfor %}
+</div>
+<hr>
+{% endblock %}

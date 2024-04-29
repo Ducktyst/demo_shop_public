@@ -5,5 +5,16 @@
 {% endblock %}
 
 {% block content %}
-<!-- TODO: список заказов пользвоателя-->
+{% for order in orders %}
+<hr>
+<div>
+    <p>Заказ №{{ order.id }}</p>
+    <p>{{ order.created_at }}</p>
+    <p>На сумму: {{ order.total_cost }}</p>
+    <p>Статус: {{ order.status_name }}</p>
+    <button><a href="{% url 'order-detail' pk=order.id %}">Открыть</a></button>
+</div>
+<hr>
+{% endfor %}
+
 {% endblock %}

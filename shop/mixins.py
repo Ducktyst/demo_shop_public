@@ -11,10 +11,3 @@ class SuperUserRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
 
 class CustomerLoginRequiredMixin(LoginRequiredMixin):
     login_url = reverse_lazy("login-customer")
-
-
-class SuperUserRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
-    login_url = reverse_lazy("login-customer")
-
-    def test_func(self):
-        return self.request.user.is_superuser

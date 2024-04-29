@@ -10,7 +10,7 @@ from shop.views import (ProductView,
                         CartConfirm,
                         OrdersList,
                         OrderDetail,
-                        OrderDelete, AdminOrders, AdminOrderResponse)
+                        OrderDelete, AdminOrders, AdminOrderResponse, CartProductUpdate)
 from shop.views import ProductListView
 from shop.views import FindUs
 from shop.views import about
@@ -34,6 +34,7 @@ urlpatterns = [
     path("cart/add", CartProductAdd.as_view(), name="cart-add-product"),  # ?product_id=<int:pk>
     path("cart/delete", CartProductDelete.as_view(), name="cart-delete-product"),  # ?product_id=<int:pk>
     path("cart/confirm", CartConfirm.as_view(), name="cart-confirm-order"),
+    path("cart/update", CartProductUpdate.as_view(), name="cart-update-product"),
 
     path("orders/", OrdersList.as_view(), name="orders"),
     path("orders/<int:pk>", OrderDetail.as_view(), name="order-get"),

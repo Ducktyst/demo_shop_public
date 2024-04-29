@@ -14,14 +14,14 @@
     <!--  https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/number -->
     <form action="{% url 'cart-update-product' %}" method="post">
         {% csrf_token %}
-        <input id="product_id" type="number" value="{{cart_item.product.id}}" hidden/>
+        <input id="product_id" name="product_id"  type="number" value="{{cart_item.product.id}}" hidden/>
         Количество
-        <input id="set_count" type="number" min="0" max="{{cart_item.product.quantity}}" value="{{cart_item.count}}" />
+        <input id="set_count" name="set_count" type="number" min="0" max="{{cart_item.product.quantity}}" value="{{cart_item.count}}" />
 
         <input class="btn btn-primary" type="submit" value="Установить количество">
-        </form>
+    </form>
 
-    <a href="{% url 'cart-delete-product' %}?product_id={{ product.id }}">Убрать из корзины</a>
+    <a href="{% url 'cart-delete-product' %}?product_id={{ cart_item.product.id }}">Убрать из корзины</a>
 </div>
 <hr>
 {% endfor %}
