@@ -315,7 +315,7 @@ class OrderDelete(CustomerLoginRequiredMixin, View):
         if order_id is None:
             return HttpResponseNotFound()
 
-        Order.objects.filter(user=user).filter(id=order_id).delete()
+        Order.objects.filter(user=user).filter(id=order_id).filter(status=Order.NEW).delete()
         return redirect('orders')
 
 

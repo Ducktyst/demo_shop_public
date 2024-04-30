@@ -28,7 +28,9 @@
 
 <div>
     <p>Итоговая стоимость: {{ total_cost }} </p>
-    <input type="submit" value="Оформить заказ" name="_create-order">
+    <form action="{% url 'cart-confirm-order' %}">
+        <input type="submit" value="Оформить заказ" name="_create-order">
+    </form>
 </div>
 
 {% endblock %}

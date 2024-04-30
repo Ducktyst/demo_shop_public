@@ -37,7 +37,7 @@ urlpatterns = [
     path("cart/update", CartProductUpdate.as_view(), name="cart-update-product"),
 
     path("orders/", OrdersList.as_view(), name="orders"),
-    path("orders/<int:pk>", OrderDetail.as_view(), name="order-get"),
+    path("orders/<int:pk>", OrderDetail.as_view(), name="order-detail"),
     path("orders/<int:pk>/delete", OrderDelete.as_view(), name="order-delete"),
 ] + auth_urlpatterns
 

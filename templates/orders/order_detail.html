@@ -15,11 +15,13 @@
     {% if order.status != order.NEW %}
     <p>Ответ магазина: {{order.message}}</p>
     {% endif %}
-    <p>Товары в заказе: </p>
-    {% for item range order.orderitem_set %}
-    <p>Наименование: {{ item.product.name }}</p>
+    <br>
+    <p><b>Товары в заказе: </b></p>
+    {% for item in order_items %}
+    <p>{{ item.product.name }}</p>
     <p>Цена: {{ item.product.price }}</p>
     <p>Кол-во: {{ item.count }}</p>
+    <br>
     {% endfor %}
 </div>
 <hr>
