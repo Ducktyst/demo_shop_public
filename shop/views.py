@@ -350,6 +350,9 @@ class AdminOrderResponse(SuperUserRequiredMixin, FormView):
     form_class = OrderResponseForm
 
     def get(self, request, *args, **kwargs):
+        # if not self.request.user.is_superuser:
+        #     return redirect("home")
+        
         return self.render_form(request, '', *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
