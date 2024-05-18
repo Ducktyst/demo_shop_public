@@ -108,6 +108,9 @@ class CartDetail(CustomerLoginRequiredMixin, TemplateView):
     template_name = "cart/cart_detail.html"
 
     def get(self, request, *args, **kwargs):
+        # if not self.request.user.is_authenticated:
+        #     return redirect('login-customer')
+        
         user_id = request.user.id
         cart = Cart.objects.filter(user_id=user_id).first()
         if not cart:
@@ -284,6 +287,9 @@ class CartConfirm(CustomerLoginRequiredMixin, View):
 class OrdersList(CustomerLoginRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
+        # if not self.request.user.is_superuser:
+        #     return redirect('admin')
+        
         user = self.request.user
         context = {}
         context.update({"orders": Order.objects.filter(user=user).order_by('-created_at').all()})
